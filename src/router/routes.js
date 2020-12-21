@@ -1,13 +1,40 @@
+import MainLayout from 'layouts/MainLayout.vue';
+import HomeComponent from 'pages/Home.vue';
+import ListComponent from 'pages/ListNotes.vue';
+import CreateComponent from 'pages/CreateNote.vue';
+import ViewComponent from 'pages/ViewNote.vue';
+import Account from 'pages/Account.vue';
 
 const routes = [
   {
     path: '/',
-    component: () => import('layouts/MainLayout.vue'),
+    component: MainLayout,
     children: [
-      { path: '', component: () => import('pages/Home.vue') },
-      { path: 'list', component: () => import('pages/ListNotes.vue') },
-      { path: 'note', component: () => import('pages/ViewNote.vue') },
-      { path: 'account', component: () => import('pages/Account.vue')}
+      {
+        name: 'home',
+        path: '/',
+        component: HomeComponent
+      },
+      {
+        name: 'list',
+        path: '/list',
+        component: ListComponent
+      },
+      {
+        name: 'create',
+        path: '/create',
+        component: CreateComponent
+      },
+      {
+        name: 'note',
+        path: '/note',
+        component: ViewComponent
+      },
+      {
+        name: 'account',
+        path: '/account',
+        component: Account
+      }
     ]
   },
 

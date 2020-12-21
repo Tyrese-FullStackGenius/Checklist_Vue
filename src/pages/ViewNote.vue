@@ -1,7 +1,24 @@
 <template>
   <div>
     <div align="center">
-        <h2>ViewNote.vue</h2>
+      <h3>{{ note.title }}</h3>
+      <p>{{ note.content }}</p>
     </div>
   </div>
 </template>
+<script>
+export default {
+  data() {
+    return {
+      note: {},
+    };
+  },
+  created() {
+    let uri = `http://localhost:4000/notes/${this.$route.params.id}`;
+    this.$axios.get(uri).then((response) => {
+      this.note = response.data;
+    });
+  },
+  methods: {},
+};
+</script>

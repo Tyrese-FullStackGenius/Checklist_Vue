@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div v-if="loggedIn()" class="q-pa-md" style="max-width: 500px">
+  <div align="center">
+    <div v-if="loggedIn()" class="q-ma-md" style="max-width: 500px">
       <span style="font-size:16px">You logged in.</span>
       <q-btn label="Logout" color="primary" @click="logout()" />
     </div>
@@ -114,7 +114,7 @@
     </div>
   </div>
 </template>
- <script>
+<script>
 export default {
   data() {
     return {
@@ -175,7 +175,7 @@ export default {
     usernameRule(val) {
       return new Promise(resolve => {
         let uri = "http://localhost:4000/accounts/checkUniqueUsername";
-        this.axios.post(uri, { username: val }).then(res => {
+        this.$axios.post(uri, { username: val }).then(res => {
           console.log("call back on unique check: " + res.data.result);
           if (res.data.result) {
             resolve((val && val.length > 0) || "Please enter a username");
@@ -187,7 +187,7 @@ export default {
     },
     createAccount() {
       let uri = "http://localhost:4000/accounts/";
-      this.axios.post(uri, this.account).then(() => {
+      this.$axios.post(uri, this.account).then(() => {
         this.switchLogin();
       });
     },

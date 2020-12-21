@@ -9,8 +9,11 @@ const saltRounds = 10;
 const jwt = require('jsonwebtoken');
 
 // Create new account
-router.post("/", (req, res, next) => { // add check for unique username
-    console.log("Creating account");
+router.post("/", checkUnique, (req, res) => {
+    if (!req.uniqueUsername) {
+        res.status(200).json({ message: "Username already taken" });
+        return;
+    }
     bcrypt.genSalt(saltRounds, (err, salt) => {
         bcrypt.hash(req.body.password, salt, (err, hash) => {
             const account = new Account({
@@ -20,8 +23,7 @@ router.post("/", (req, res, next) => { // add check for unique username
                 hashedPassword: hash,
                 // more attributes to add later
             });
-            account
-                .save()
+            account.save()
                 .then(result => {
                     console.log(result);
                     res.status(201).json({
@@ -31,15 +33,13 @@ router.post("/", (req, res, next) => { // add check for unique username
                 })
                 .catch(err => {
                     console.log(err);
-                    res.status(500).json({
-                        error: err
-                    });
+                    res.status(500).json({ error: err });
                 });
         });
     });
 });
 
-router.post("/login", (req, res, next) => {
+router.post("/login", (req, res) => {
     //const username = req.params.username;
     Account.find({ "username": req.body.username })
         .exec()
@@ -50,25 +50,15 @@ router.post("/login", (req, res, next) => {
 
                 bcrypt.compare(req.body.password, account.hashedPassword, function (err, result) {
                     if (result) {
-                        // res.status(200).json({
-                        //     message: "Login Successful"
-                        // });
-
                         jwt.sign({ account }, 'tempSecretKey', (err, token) => {
-                            res.json({
-                                token
-                            });
+                            res.json({ token });
                         });
                     } else {
-                        res.status(200).json({
-                            message: "Wrong passowrd or username"
-                        });
+                        res.status(200).json({ message: "Wrong password or username" });
                     }
                 });
             } else {
-                res.status(404).json({
-                    message: "No valid account found for provided ID"
-                });
+                res.status(404).json({ message: "No valid account found for provided ID" });
             }
         })
         .catch(err => {
@@ -77,20 +67,20 @@ router.post("/login", (req, res, next) => {
         });
 });
 
-router.post("/checkUniqueUsername", (req, res, next) => {
+router.post("/checkUniqueUsername", checkUnique, (req, res) => {
+    res.status(200).json({ result: req.uniqueUsername });
+});
+
+function checkUnique(req, res, next) {
     Account.find({ "username": req.body.username })
         .exec()
         .then(doc => {
-            if (doc.length > 0) {
-                res.status(200).json({ result: false });
-            } else {
-                res.status(200).json({ result: true });
-            }
+            req.uniqueUsername = doc.length == 0;
+            next();
         })
         .catch(err => {
-            console.log(err);
             res.status(500).json({ error: err });
         });
-});
+}
 
 module.exports = router;
