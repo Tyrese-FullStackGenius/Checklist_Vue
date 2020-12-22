@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
@@ -40,25 +39,21 @@ router.post("/", checkUnique, (req, res) => {
 });
 
 router.post("/login", (req, res) => {
-    //const username = req.params.username;
-    Account.find({ "username": req.body.username })
+    Account.findOne({ "username": req.body.username })
         .exec()
-        .then(doc => {
-            const account = doc[0];
+        .then(account => {
             if (account) {
-                console.log("From database", account);
-
                 bcrypt.compare(req.body.password, account.hashedPassword, function (err, result) {
                     if (result) {
-                        jwt.sign({ account }, 'tempSecretKey', (err, token) => {
+                        jwt.sign({ account }, 'tempSecretKey', (err, token) => { // again, fix token
                             res.json({ token });
                         });
                     } else {
-                        res.status(200).json({ message: "Wrong password or username" });
+                        res.status(200).json({ message: "Incorrect password" });
                     }
                 });
             } else {
-                res.status(404).json({ message: "No valid account found for provided ID" });
+                res.status(200).json({ message: "User not found" });
             }
         })
         .catch(err => {
@@ -69,6 +64,14 @@ router.post("/login", (req, res) => {
 
 router.post("/checkUniqueUsername", checkUnique, (req, res) => {
     res.status(200).json({ result: req.uniqueUsername });
+});
+
+router.get("/", verifyToken, (req, res) => {
+    Account.find({ "username": req.authData.username })
+        .exec()
+        .then(doc => {
+            console.log("DOC: " + doc);
+        });
 });
 
 function checkUnique(req, res, next) {
@@ -83,4 +86,23 @@ function checkUnique(req, res, next) {
         });
 }
 
-module.exports = router;
+function verifyToken(req, res, next) {
+    const bearerHeader = req.headers.authorization; //get auth header value
+    if (typeof bearerHeader !== 'undefined') {
+        const bearerToken = bearerHeader.split(' ')[1]; // "Bearer [token]"
+        jwt.verify(bearerToken, 'tempSecretKey', (err, authData) => { // replace temp key
+            if (!err) {
+                req.authData = authData;
+                console.log(authData);
+                next();
+            } else {
+                console.log("Token unverified");
+                res.sendStatus(403);
+            }
+        });
+    } else {
+        res.sendStatus(403);
+    }
+}
+
+module.exports = { router, verifyToken };

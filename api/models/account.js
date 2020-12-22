@@ -7,7 +7,7 @@ const accountSchema = mongoose.Schema({
     username: String,
     name: String,
     hashedPassword: String,
-    notes: [{ type: Schema.Types.ObjectId, ref: 'Note' }],
+    notes: [{ type: Schema.Types.ObjectId, ref: 'Note', default: [] }],
     admin: Boolean,
 });
 

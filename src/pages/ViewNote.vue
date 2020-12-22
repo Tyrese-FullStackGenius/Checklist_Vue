@@ -14,7 +14,7 @@ export default {
     };
   },
   created() {
-    let uri = `http://localhost:4000/notes/${this.$route.params.id}`;
+    let uri = `/notes/${this.$route.params.id}`;
     this.$axios.get(uri).then((response) => {
       this.note = response.data;
     });

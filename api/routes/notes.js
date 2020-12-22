@@ -4,10 +4,12 @@ const mongoose = require("mongoose");
 const bcrypt = require('bcrypt');
 const Note = require("../models/note");
 const Account = require("../models/account");
+const verifyToken = require("./accounts").verifyToken;
+
 const saltRounds = 10;
 const jwt = require('jsonwebtoken');
 
-router.post("/", (req, res) => {
+router.post("/", verifyToken, (req, res) => {
     const note = new Note({
         _id: new mongoose.Types.ObjectId(),
         title: req.body.title,
@@ -17,10 +19,17 @@ router.post("/", (req, res) => {
     note.save()
         .then(result => {
             console.log(result);
-            res.status(201).json({
-                message: "Created note",
-                createdNote: result
-            });
+            Account.findOne({ "_id": req.authData.account._id })
+                .exec()
+                .then(doc => {
+                    doc.notes.push(result);
+                    doc.save().then(x => {
+                        res.status(201).json({
+                            message: "Created note",
+                            createdNote: result
+                        });
+                    });
+                });
         })
         .catch(err => {
             console.log(err);
@@ -28,7 +37,7 @@ router.post("/", (req, res) => {
         });
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", verifyToken, (req, res) => {
     console.log("ID: " + req.params.id);
     Note.findById(req.params.id).exec()
         .then(doc => {

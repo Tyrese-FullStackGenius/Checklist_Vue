@@ -39,7 +39,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/accounts", accountRoutes);
+app.use("/accounts", accountRoutes.router);
 app.use("/notes", noteRoutes);
 //app.use("/courses", courseRoutes);
 

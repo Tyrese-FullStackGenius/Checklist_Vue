@@ -10,7 +10,7 @@
         autocapitalize="off"
         autocomplete="off"
         spellcheck="true"
-        >
+      >
         <q-input
           clearable
           filled
@@ -43,14 +43,24 @@ export default {
   },
   methods: {
     createNote() {
-      let uri = "http://localhost:4000/notes/";
-      this.$axios.post(uri, this.note).then((response) => {
-        this.$router.push({name: 'note', params: { id: response.data.createdNote._id }});
-      });
+      let uri = "/notes";
+      this.$axios
+        .post(uri, this.note)
+        .then((response) => {
+          this.$router.push({
+            name: "note",
+            params: { id: response.data.createdNote._id },
+          });
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            console.log("Forbidden");
+          }
+        });
     },
     onReset() {
-        this.note = {};
-    }
+      this.note = {};
+    },
   },
 };
 </script>
