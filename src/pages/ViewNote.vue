@@ -2,12 +2,14 @@
   <div>
     <div align="center">
       <h3>{{ note.title }}</h3>
-      <p>{{ note.content }}</p>
+      <markdown-wrap :source="note.content"></markdown-wrap>
     </div>
   </div>
 </template>
 <script>
+import MarkdownWrap from 'src/components/MarkdownWrap.vue';
 export default {
+  components: { MarkdownWrap },
   data() {
     return {
       note: {},

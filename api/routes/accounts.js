@@ -66,12 +66,12 @@ router.post("/checkUniqueUsername", checkUnique, (req, res) => {
     res.status(200).json({ result: req.uniqueUsername });
 });
 
-router.get("/", verifyToken, (req, res) => {
-    Account.find({ "username": req.authData.username })
-        .exec()
-        .then(doc => {
-            console.log("DOC: " + doc);
-        });
+router.get("/getNotes", verifyToken, getAccount, (req, res) => {
+    res.status(200).json(req.account.notes);
+});
+
+router.get("/", verifyToken, getAccount, (req, res) => {
+    res.status(200).json(req.account);
 });
 
 function checkUnique(req, res, next) {
@@ -82,6 +82,21 @@ function checkUnique(req, res, next) {
             next();
         })
         .catch(err => {
+            res.status(500).json({ error: err });
+        });
+}
+
+function getAccount(req, res, next) {
+    if (!req.authData) console.log("Run verifyToken first!");
+    Account.findOne({ "_id": req.authData.account._id })
+        .exec()
+        .then(account => {
+            if (!account) res.status(404).json({ message: "User not found" });
+            req.account = account;
+            next();
+        })
+        .catch(err => {
+            console.log(err);
             res.status(500).json({ error: err });
         });
 }

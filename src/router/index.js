@@ -2,8 +2,17 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 
 import routes from './routes';
+import VueMarkdown from '@adapttive/vue-markdown'; // production
+import Prism from "prismjs";
+
 
 Vue.use(VueRouter);
+Vue.use(Prism);
+Vue.component('vue-markdown', VueMarkdown);
+
+import MarkdownWrap from 'src/components/MarkdownWrap';
+Vue.component('markdown-wrap', MarkdownWrap);
+
 
 /*
  * If not building with SSR mode, you can

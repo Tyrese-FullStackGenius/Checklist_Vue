@@ -44,9 +44,3 @@
     </q-layout>
   </div>
 </template>
-
-<script>
-export default {
-
-};
-</script>
