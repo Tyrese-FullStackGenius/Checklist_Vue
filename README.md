@@ -1,6 +1,6 @@
 # Checklist (checklist)
 
-Simple checklist
+A simple notetaking web app.
 
 ## Install the dependencies
 ```bash
