@@ -121,7 +121,7 @@ export default {
   data() {
     return {
       verifyPass: "",
-      signUp: true,
+      signUp: false,
       account: {},
       wrongCreds: "",
     };

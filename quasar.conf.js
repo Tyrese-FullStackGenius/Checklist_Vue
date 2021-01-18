@@ -72,6 +72,10 @@ module.exports = function (/* ctx */) {
       }
     },
 
+    sourceFiles: {
+      indexHtmlTemplate: 'src/index.html',
+    },
+
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-devServer
     devServer: {
       https: false,
@@ -193,5 +197,6 @@ module.exports = function (/* ctx */) {
         // chainWebpack also available besides this extendWebpack
       }
     }
-  }
-}
+    
+  };
+};

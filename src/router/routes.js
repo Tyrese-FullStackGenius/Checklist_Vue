@@ -1,4 +1,5 @@
 import MainLayout from 'layouts/MainLayout.vue';
+import SideLayout from 'layouts/MainLayoutSidebar.vue';
 import HomeComponent from 'pages/Home.vue';
 import ListComponent from 'pages/ListNotes.vue';
 import CreateComponent from 'pages/CreateNote.vue';
