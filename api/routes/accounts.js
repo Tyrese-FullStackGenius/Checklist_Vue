@@ -15,13 +15,8 @@ router.post("/", checkUnique, (req, res) => {
     }
     bcrypt.genSalt(saltRounds, (err, salt) => {
         bcrypt.hash(req.body.password, salt, (err, hash) => {
-            const account = new Account({
-                _id: new mongoose.Types.ObjectId(),
-                username: req.body.username,
-                name: req.body.name,
-                hashedPassword: hash,
-                // more attributes to add later
-            });
+            const account = new Account(req.body);
+            account._id = new mongoose.Types.ObjectId();
             account.save()
                 .then(result => {
                     console.log(result);

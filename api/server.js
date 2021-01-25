@@ -41,7 +41,6 @@ app.use((req, res, next) => {
 
 app.use("/accounts", accountRoutes.router);
 app.use("/notes", noteRoutes);
-//app.use("/courses", courseRoutes);
 
 app.use((req, res, next) => {
   const error = new Error("Not found");
