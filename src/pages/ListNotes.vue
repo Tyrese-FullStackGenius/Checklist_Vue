@@ -31,6 +31,7 @@ export default {
     };
   },
   created() {
+    console.log(this.$axios.defaults.headers);
     let uri = `/accounts/getNotes`;
     this.$axios.get(uri).then((response) => {
       let noteIds = response.data;

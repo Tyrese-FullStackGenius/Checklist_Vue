@@ -1,15 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
-const bcrypt = require('bcrypt');
 const Note = require("../models/note");
 const Account = require("../models/account");
-const verifyToken = require("./accounts").verifyToken;
 
-const saltRounds = 10;
-const jwt = require('jsonwebtoken');
-
-router.post("/", verifyToken, (req, res) => {
+router.post("/", (req, res) => {
     const note = new Note({
         _id: new mongoose.Types.ObjectId(),
         title: req.body.title,
@@ -37,7 +32,7 @@ router.post("/", verifyToken, (req, res) => {
         });
 });
 
-router.get("/:id", verifyToken, (req, res) => {
+router.get("/:id", (req, res) => {
     console.log("ID: " + req.params.id);
     Note.findById(req.params.id).exec()
         .then(doc => {

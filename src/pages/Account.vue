@@ -182,7 +182,7 @@ export default {
       });
     },
     createAccount() {
-      let uri = "/accounts";
+      let uri = "/accounts/createAccount";
       this.$axios.post(uri, this.account).then(() => {
         this.switchLogin();
       });
@@ -193,7 +193,7 @@ export default {
     },
     updateAxiosHeader() {
       let token = sessionStorage.getItem("token");
-      this.$axios.defaults.headers.common["Authorization"] = "Bearer " + token;
+      this.$axios.defaults.headers.common.authorization = "Bearer " + token;
       console.log("updated header");
     },
   },

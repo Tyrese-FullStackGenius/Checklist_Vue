@@ -8,11 +8,11 @@ const app = express();
 const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 4000;
 const mongoose = require('mongoose');
-const noteRoutes = require("./routes/notes");
-const accountRoutes = require("./routes/accounts");
-//const courseRoutes = require("./routes/courses");
+const noteRoutes = require("./routes/noteRoutes");
+const accountRoutes = require("./routes/accountRoutes");
 const uri = process.env.DB_URI;
 const jwt = require('jsonwebtoken');
+const jwt_key = process.env.JWT_KEY;
 
 mongoose.connect(uri, {
   useNewUrlParser: true,
@@ -39,7 +39,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/accounts", accountRoutes.router);
+app.use(verifyToken);
+
+app.use("/accounts", accountRoutes);
 app.use("/notes", noteRoutes);
 
 app.use((req, res, next) => {
@@ -51,14 +53,40 @@ app.use((req, res, next) => {
 app.use((error, req, res, next) => {
   res.status(error.status || 500);
   res.json({
-    error: {
-      message: error.message
-    }
+    error: { message: error.message }
   });
 });
 
-app.listen(PORT, function () {
-  console.log('Server is running on Port:', PORT);
-});
+app.listen(PORT, console.log('Server is running on port:', PORT));
+
+function verifyToken(req, res, next) {
+  const bearerHeader = req.headers.authorization; //get auth header value
+
+  if (!shouldAuth(req)) {
+    console.log(req.path + " was excluded from token check.");
+    next();
+  } else if (typeof bearerHeader !== 'undefined') {
+    const bearerToken = bearerHeader.split(' ')[1]; // "Bearer [token]"
+    jwt.verify(bearerToken, jwt_key, (err, authData) => {
+      if (!err) {
+        req.authData = authData;
+        next();
+      } else {
+        res.sendStatus(403);
+      }
+    });
+  } else {
+    res.sendStatus(403);
+  }
+}
+
+function shouldAuth(req) {
+  const excluded = [
+    "/accounts/checkUniqueUsername",
+    "/accounts/createAccount",
+    "/accounts/login"
+  ];
+  return !excluded.includes(req.path);
+}
 
 module.exports = app;
