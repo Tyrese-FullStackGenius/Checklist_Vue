@@ -25,7 +25,7 @@ router.post("/createAccount", checkUnique, async (req, res) => {
     const result = await accountObj.save();
     console.log(result);
     res.status(201).json({
-        message: "Created account",
+        message: "Account created",
         createdAccount: result
     });
 });
@@ -68,7 +68,7 @@ function checkUnique(req, res, next) {
 function getAccount(req, res, next) {
     Account.findById(req.authData.account._id).exec()
         .then(account => {
-            if (!account) res.status(404).json({ message: "User not found" });
+            if (!account) res.sendStatus(404);
             req.account = account;
             next();
         });

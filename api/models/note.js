@@ -8,9 +8,9 @@ const noteSchema = mongoose.Schema({
     owner: { type: Schema.Types.ObjectId, ref: 'account' },
     notebook: { type: Schema.Types.ObjectId, ref: 'notebook' },
     created: { type: Date, default: Date.now() },
-    tags: [String],
+    tags: { type: [String], default: [] },
     starred: { type: Boolean, default: false },
-    edited: Date
+    edited: { type: Date, default: Date.now() }
 });
 
 module.exports = mongoose.model('Note', noteSchema);

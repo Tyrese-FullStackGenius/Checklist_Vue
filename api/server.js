@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 4000;
 const mongoose = require('mongoose');
 const noteRoutes = require("./routes/noteRoutes");
 const accountRoutes = require("./routes/accountRoutes");
+const notebookRoutes = require("./routes/notebookRoutes");
 const uri = process.env.DB_URI;
 const jwt = require('jsonwebtoken');
 const jwt_key = process.env.JWT_KEY;
@@ -43,6 +44,7 @@ app.use(verifyToken);
 
 app.use("/accounts", accountRoutes);
 app.use("/notes", noteRoutes);
+app.use("/notebooks", notebookRoutes);
 
 app.use((req, res, next) => {
   const error = new Error("Not found");
@@ -52,8 +54,9 @@ app.use((req, res, next) => {
 
 app.use((error, req, res, next) => {
   res.status(error.status || 500);
+  console.log(error);
   res.json({
-    error: { message: error.message }
+    error: { message: error.message } // don't send error back in production
   });
 });
 
