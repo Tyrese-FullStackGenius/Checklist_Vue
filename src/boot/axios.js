@@ -7,9 +7,8 @@ const axiosInstance = axios.create({
 });
 
 export default ({ Vue }) => {
+  console.log("Axios boot");
   Vue.prototype.$axios = axiosInstance;
-  let token = sessionStorage.getItem("token");
-  Vue.prototype.$axios.defaults.headers.common.authorization = "Bearer " + token;
 };
 
 export { axiosInstance };

@@ -1,5 +1,6 @@
 import MainLayout from 'layouts/MainLayout.vue';
 import SideLayout from 'layouts/MainLayoutSidebar.vue';
+import AppLayout from 'layouts/AppLayout';
 import HomeComponent from 'pages/Home.vue';
 import ListComponent from 'pages/ListNotes.vue';
 import CreateComponent from 'pages/CreateNote.vue';
@@ -9,7 +10,7 @@ import Account from 'pages/Account.vue';
 const routes = [
   {
     path: '/',
-    component: MainLayout,
+    component: AppLayout,
     children: [
       {
         name: 'home',

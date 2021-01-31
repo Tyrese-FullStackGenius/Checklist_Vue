@@ -1,6 +1,6 @@
 <template>
   <div align="center">
-    <div v-if="loggedIn()" class="q-ma-md" style="max-width: 500px">
+    <div v-if="isLoggedIn()" class="q-ma-md" style="max-width: 500px">
       <span style="font-size: 16px">You logged in.</span>
       <q-btn label="Logout" color="primary" @click="logout()" />
     </div>
@@ -134,10 +134,6 @@ export default {
       this.$router.push({ name: "home" });
     },
 
-    loggedIn() {
-      return sessionStorage.getItem("token") != null;
-    },
-
     switchSignup() {
       console.log("switched to signup");
       this.signUp = true;
@@ -191,11 +187,11 @@ export default {
       this.account = {};
       this.wrongCreds = "";
     },
-    updateAxiosHeader() {
-      let token = sessionStorage.getItem("token");
-      this.$axios.defaults.headers.common.authorization = "Bearer " + token;
-      console.log("updated header");
-    },
+    // updateAxiosHeader() {
+    //   let token = sessionStorage.getItem("token");
+    //   this.$axios.defaults.headers.common.authorization = "Bearer " + token;
+    //   console.log("updated header");
+    // },
   },
 };
 </script>
