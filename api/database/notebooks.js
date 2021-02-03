@@ -1,37 +1,55 @@
 const mongoose = require("mongoose");
-const Note = require("../models/note");
 const Notebook = require("../models/notebook");
+const Notes = require("./notes");
 
 module.exports = {
-
-    exists: async function (id) {
+    exists: async (id) => {
         if (!mongoose.Types.ObjectId.isValid(id)) return false;
         return await Notebook.exists({ _id: id });
     },
 
-    getById: async function (id) {
-        return await Notebook.findById(id);
+    createNotebook: async (notebookName, accountId) => {
+        let notebook = new Notebook({
+            _id: new mongoose.Types.ObjectId(),
+            name: notebookName,
+            notes: [],
+            owner: accountId
+        });
+        return await notebook.save();
     },
 
-    addNote: async function (notebookId, noteId) {
+    getById: async (id, populate) => {
+        let notebook = await Notebook.findById(id);
+        if (!populate)
+            return notebook;
+        return await notebook.populate("notes").execPopulate();
+    },
+
+    deleteById: async (id) => {
+        let notes = await this.getById(id).notes;
+        for (var noteId in notes) {
+            await Notes.setNotebook(noteId, undefined);
+        }
+        await Notebook.findByIdAndDelete(id);
+    },
+
+    addNote: async (notebookId, noteId) => {
         let notebook = await this.getById(notebookId);
         notebook.notes.push(noteId);
         await notebook.save();
-
-        // modify note object as well
+        await Notes.setNotebook(noteId, notebookId);
     },
 
-    removeNote: async function (notebookId, noteId) {
+    removeNote: async (notebookId, noteId) => {
         let notebook = await this.getById(notebookId);
         notebook.notes.pull(noteId);
         await notebook.save();
-
-        // modify note object as well
-        // undefined notebook property?
+        await Notes.setNotebook(noteId, undefined);
     },
 
-    moveNote: async function (oldNotebookId, newNotebookId, noteId) {
-        
+    moveNote: async (oldNotebookId, newNotebookId, noteId) => {
+        await this.removeNote(oldNotebookId, noteId);
+        await this.addNote(newNotebookId, noteId);
     }
 };
 

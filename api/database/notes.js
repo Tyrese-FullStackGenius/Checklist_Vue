@@ -8,18 +8,20 @@ async function getNoteContentById(id) {
 }
 
 module.exports = {
-    exists: async function (id) {
-        if (!mongoose.Types.ObjectId.isValid(id)) return false;
+    exists: async (id) => {
+        if (!mongoose.Types.ObjectId.isValid(id))
+            return false;
         return await Note.exists({ _id: id });
     },
 
-    getById: async function (id, populate) {
+    getById: async (id, populate) => {
         let note = await Note.findById(id);
-        if (!populate) return note;
+        if (!populate)
+            return note;
         return await note.populate("content").execPopulate();
     },
 
-    updateById: async function (id, newNote) {
+    updateById: async (id, newNote) => {
         let noteContent = await getNoteContentById(id);
         noteContent.content = newNote.content;
         await noteContent.save();
@@ -29,20 +31,25 @@ module.exports = {
         oldNote.tags = newNote.tags;
         oldNote.starred = newNote.starred;
         oldNote.edited = Date.now();
-        
+
         return await oldNote.save();
     },
 
-    setNotebook: async function (noteId, notebookId) {
+    deleteById: async (id) => {
+        let deletedNote = await this.getById(id);
+        await Notebooks.removeNote(deletedNote.notebook, deletedNote._id);
+        await Note.findByIdAndDelete(id);
+    },
+
+    setNotebook: async (noteId, notebookId) => {
         let note = await this.getById(noteId);
         note.notebook = notebookId;
         await note.save();
     },
 
-    deleteById: async function (id) {
-        let deletedNote = await Note.findByIdAndDelete(id);
-        let notebook = await Notebooks.getById(deletedNote.notebook);
-        notebook.notes.pull(deletedNote);
+    hasNotebook: async (noteId) => {
+        let note = await this.getById(noteId);
+        return note.notebook != undefined;
     }
 };
 
