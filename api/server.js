@@ -3,11 +3,12 @@
 // https://github.com/KrunalLathiya/MEVNCRUDExample
 
 require('dotenv').config();
-const express = require('express');
-const app = express();
-const bodyParser = require('body-parser');
-const PORT = process.env.PORT || 4000;
 const mongoose = require('mongoose');
+const express = require('express');
+const bodyParser = require('body-parser');
+const expressValidator = require('express-validator');
+const app = express();
+const PORT = process.env.PORT || 4000;
 const noteRoutes = require("./routes/noteRoutes");
 const accountRoutes = require("./routes/accountRoutes");
 const notebookRoutes = require("./routes/notebookRoutes");
@@ -35,10 +36,11 @@ app.use((req, res, next) => {
   );
   if (req.method === "OPTIONS") {
     res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
-    return res.status(200).json({});
+    return res.sendStatus(200);
   }
   next();
 });
+
 
 app.use(verifyToken);
 
@@ -56,7 +58,7 @@ app.use((error, req, res, next) => {
   res.status(error.status || 500);
   console.log(error);
   res.json({
-    error: { message: error.message } // don't send error back in production
+    error // don't send error back in production
   });
 });
 
