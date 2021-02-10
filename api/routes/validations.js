@@ -15,7 +15,14 @@ module.exports = {
         .matches(/[a-z]/).withMessage("Password must contain at least one lowercase letter")
         .matches(/[A-Z]/).withMessage("Password must contain at least one capital letter")
         .matches(/[1-9]/).withMessage("Password must contain at least one number")
-        .matches(/[$-/:-?{-~!"^_`\[\]]/).withMessage("Password must contain at least one symbol")
+        .matches(/[$-/:-?{-~!"^_`\[\]]/).withMessage("Password must contain at least one symbol"),
 
-    
+    isEmpty: function (value) {
+        return (req, res, next) => {
+            console.log(value + " im inside hi");
+            console.log(req.body);
+            next();
+        }
+    }
+
 };

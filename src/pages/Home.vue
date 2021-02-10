@@ -15,8 +15,8 @@
       <!--<q-item-section side top>
         <q-checkbox v-model="this.noteSelectionState()" />
       </q-item-section>-->
-      <q-scroll-area style="height: 100px">
-        <q-item v-for="note in this.notes" clickable v-ripple>
+      <q-scroll-area class="full-height">
+        <q-item v-for="note in this.notes" v-bind:key="note._id" clickable v-ripple>
           <q-item-section side top>
             <q-checkbox v-model="note.selected" />
           </q-item-section>
@@ -38,25 +38,25 @@ export default {
     return {
       notes: [
         {
-          _id: "fdajlfdksa",
+          _id: "fdabjlfdksa",
           title: "note a",
           created: Date.now(),
           selected: false,
         },
         {
-          _id: "fdajlfdsafdksa",
+          _id: "fdajlabfdsafdksa",
           title: "note b",
           created: Date.now(),
           selected: false,
         },
         {
-          _id: "fdasdfajlfdksa",
+          _id: "fdasdfajfaslfdksa",
           title: "note c",
           created: Date.now(),
           selected: false,
         },
         {
-          _id: "fdajlfdkdasfsa",
+          _id: "fdajlfdkfadasbfsa",
           title: "note d",
           created: Date.now(),
           selected: false,

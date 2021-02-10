@@ -11,6 +11,7 @@ router.post("/createAccount",
     Validations.username,
     Validations.name,
     Validations.password,
+    Validations.isEmpty("hello?"),
     checkValidation,
     async (req, res, next) => {
 
