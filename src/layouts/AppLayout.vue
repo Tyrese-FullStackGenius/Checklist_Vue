@@ -58,7 +58,7 @@
       <!-- drawer content -->
     </q-drawer>
 
-    <q-page-container>
+    <q-page-container class="full-height">
       <router-view />
     </q-page-container>
 
