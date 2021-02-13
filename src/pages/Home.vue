@@ -6,7 +6,7 @@
       <q-list>
         <q-scroll-area style="height: 200px">
           <div v-for="note in this.notes" v-bind:key="note._id">
-            <q-item clickable v-ripple>
+            <q-item clickable v-ripple @click="currentNote = note">
               <q-item-section side top>
                 <q-checkbox v-model="note.selected" />
               </q-item-section>
@@ -17,13 +17,48 @@
                 }}</q-item-label>
               </q-item-section>
             </q-item>
-            <q-separator/>
+            <q-separator />
           </div>
         </q-scroll-area>
       </q-list>
     </div>
     <div class="col q-pa-sm q-list--bordered">
-      <p>I am a note editor!</p>
+      <div v-if="currentNote == null">
+        <p>Select a note to see it here!</p>
+      </div>
+      <div v-else>
+        <q-tabs
+          v-model="tab"
+          dense
+          class="text-grey"
+          active-color="primary"
+          indicator-color="primary"
+          align="left"
+          narrow-indicator
+        >
+          <q-tab name="markdown" label="Markdown" />
+          <q-tab name="preview" label="Preview" />
+        </q-tabs>
+
+        <q-separator />
+
+        <q-tab-panels v-model="tab">
+          <q-tab-panel name="markdown">
+            <q-input class="text-h6" v-model="currentNote.title" item-aligned dense placeholder="Title" />
+            <q-input
+              v-model="currentNote.content"
+              item-aligned
+              type="textarea"
+            />
+          </q-tab-panel>
+
+          <q-tab-panel name="preview">
+            <div class="text-h6">{{ currentNote.title }}</div>
+            <markdown-wrap :source="currentNote.content"></markdown-wrap>
+
+          </q-tab-panel>
+        </q-tab-panels>
+      </div>
     </div>
   </div>
 </template>
@@ -32,30 +67,36 @@
 export default {
   data() {
     return {
+      tab: "markdown",
+      currentNote: null,
       notes: [
         {
           _id: "fdabjlfdksa",
           title: "note a",
           created: Date.now(),
           selected: false,
+          content: "note a content",
         },
         {
           _id: "fdajlabfdsafdksa",
           title: "note b",
           created: Date.now(),
           selected: false,
+          content: "note b content",
         },
         {
           _id: "fdasdfajfaslfdksa",
           title: "note c",
           created: Date.now(),
           selected: false,
+          content: "note c content",
         },
         {
           _id: "fdajlfdkfadasbfsa",
           title: "note d",
           created: Date.now(),
           selected: false,
+          content: "note d content",
         },
       ],
       months: [
