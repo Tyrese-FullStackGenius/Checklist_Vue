@@ -1,6 +1,6 @@
 <template>
   <div class="q-pa-none">
-    <q-layout view="hHh Lpr lff" style="height: 400px" class="">
+    <q-layout view="hHh Lpr lff" class="full-height">
       <q-header elevated class="bg-primary">
         <q-toolbar>
           <q-btn flat @click="drawer = !drawer" round dense icon="menu" />
@@ -38,7 +38,7 @@
         </q-scroll-area>
       </q-drawer>
 
-      <q-page-container>
+      <q-page-container class="fit">
         <router-view />
       </q-page-container>
     </q-layout>
