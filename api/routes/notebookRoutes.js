@@ -1,15 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const mongoose = require("mongoose");
 const Notebook = require("../models/notebook");
+const Notebooks = require("../database/notebooks");
+const Notes = require("../database/notes");
+
+
+router.use("/:id*", authNotebookId);
 
 // get notebook by id (optional population)
-router.get("/:id", getNotebook, async (req, res, next) => {
+router.get("/:id", async (req, res, next) => {
     try {
-        let notebook = req.body.notebook;
-        if (req.body.populate) {
-            notebook = await notebook.populate("notes").execPopulate();
-        }
+        let notebook = await Notebooks.getById(req.params.id, req.body.populate);
         res.status(200).send(notebook);
     } catch (err) {
         next(err);
@@ -22,93 +23,79 @@ router.get("/:id", getNotebook, async (req, res, next) => {
 // create notebook
 router.post("/", async (req, res, next) => {
     try {
-        let notebook = new Notebook({
-            _id: new mongoose.Types.ObjectId(),
-            name: req.body.name,
-            notes: [],
-            owner: req.authData._id
-        });
-
-        const result = await notebook.save();
-        res.status(201).json({ message: "Notebook created", notebook: result });
+        let notebook = await Notebooks.create(req.body.name, req.authData.account._id);
+        res.status(201).json({ message: "Notebook created", notebook });
     } catch (err) {
         next(err);
     }
 });
 
 // delete notebook by id
-router.post("/:id/delete", getNotebook, async (req, res, next) => {
+router.post("/:id/delete", async (req, res, next) => {
     try {
-        Notebook.findByIdAndDelete(req.params.id).then(() => {
-            res.status(200).json({ message: "Notebook deleted" });
-        });
+        await Notebooks.deleteById(req.params.id);
+        res.status(200).json({ message: "Notebook deleted" });
     } catch (err) {
         next(err);
     }
 });
 
 // add note to notebook
-router.post("/:id/addNote", getNotebook, async (req, res, next) => {
+router.post("/:id/addNote", async (req, res, next) => {
     try {
         let noteId = req.body.noteId;
-        if (!noteId) return res.sendStatus(400);
+        if (!await Notes.exists(noteId)) return res.sendStatus(400);
 
-        let notebook = req.body.notebook;
-        notebook.notes.push(noteId);
-
-        notebook.save().then(() => {
-            res.status(200).json({ message: "Note added" });
-        });
+        await Notebooks.addNote(req.params.id, noteId);
+        res.status(200).json({ message: "Note added" });
     } catch (err) {
         next(err);
     }
 });
 
 // remove note from notebook
-router.post("/:id/deleteNote", getNotebook, async (req, res, next) => {
+router.post("/:id/removeNote", async (req, res, next) => {
     try {
         let noteId = req.body.noteId;
-        if (!noteId) return res.sendStatus(400);
+        if (!await Notes.exists(noteId)) return res.sendStatus(400);
 
-        let notebook = req.body.notebook;
-        notebook.notes.remove(noteId);
-
-        notebook.save().then(() => {
-            res.status(200).json({ message: "Note deleted" });
-        });
+        await Notebooks.removeNote(req.params.id, noteId);
+        res.status(200).json({ message: "Note deleted" });
     } catch (err) {
         next(err);
     }
 });
 
-router.post("/:id/moveNote", getNotebook, async (req, res, next) => {
+router.post("/:id/moveNote", async (req, res, next) => {
     try {
         let noteId = req.body.noteId;
         let newNotebookId = req.body.newNotebookId;
-        if (!noteId || ! newNotebookId) return res.sendStatus(400);
-        
-        let oldNotebook = req.body.notebook;
-        oldNotebook.notes.remove(noteId);
-        await oldNotebook.save();
+        let oldNotebookId = req.params.id;
+        if (!(await Notes.exists(noteId)) ||
+            !(await Notebooks.exists(newNotebookId)) ||
+            !(await Notebooks.exists(oldNotebookId)))
+            return res.sendStatus(400);
 
-        req.params.id = newNotebookId();
-        await getNotebook(req, res, next);
-        let newNotebook = req.body.notebook;
-        newNotebook.notes.push(noteId);
+        await Notebooks.moveNote(oldNotebookId, newNotebookId, noteId);
 
-        // get note and update notebook property
-    } catch (err) { 
+        res.status(200).json({ message: "Note moved" });
+    } catch (err) {
         next(err);
     }
 });
 
-async function getNotebook(req, res, next) {
+async function authNotebookId(req, res, next) {
     try {
-        if (!(await Notebook.exists({ _id: req.params.id }))) return res.sendStatus(404);
+        console.log("Testing auth...");
+        let id = req.params.id;
+        if (!(await Notebooks.exists(id))) return res.sendStatus(404);
 
-        let notebook = await Notebook.findById(req.params.id).exec();
-        if (req.authData._id !== notebook.owner) return res.sendStatus(403);
-        req.body.notebook = notebook;
+        let notebook = await Notebooks.getById(id);
+        console.log(notebook);
+        console.log(req.authData.account._id);
+        console.log(notebook.owner);
+        if (req.authData.account._id != notebook.owner) return res.sendStatus(403);
+        next();
     } catch (err) {
         next(err);
     }

@@ -19,7 +19,7 @@ router.post("/createAccount",
             return res.status(422).json({ message: "Username already taken" });
         }
 
-        let createdAccount = await Accounts.createAccount(req.body);
+        let createdAccount = await Accounts.create(req.body);
         res.status(201).json({
             message: "Account created",
             createdAccount: createdAccount
@@ -28,7 +28,8 @@ router.post("/createAccount",
 );
 
 router.post("/login", async (req, res) => {
-    if (await Accounts.isUniqueUsername()) {
+    if (await Accounts.isUniqueUsername(req.body.username)) {
+        console.log("User doesn't exist!");
         return res.sendStatus(404);
     }
 
@@ -45,7 +46,7 @@ router.post("/checkUniqueUsername", async (req, res) => {
     res.status(200).json({ result: await Accounts.isUniqueUsername(req.body.username) });
 });
 
-router.get("/getNotebooks", async (req, res) => {
+router.get("/notebooks", async (req, res) => {
     let notebooks = await Accounts.getNotebooks(req.authData.account._id);
     res.status(200).json({ notebooks: notebooks });
 });

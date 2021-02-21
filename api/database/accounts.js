@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const saltRounds = 12;
 
 module.exports = {
-    createAccount: async (accountData) => {
+    create: async (accountData) => {
         let hash = await bcrypt.hash(accountData.password, saltRounds);
         let account = new Account({
             _id: new mongoose.Types.ObjectId(),
@@ -16,8 +16,10 @@ module.exports = {
         return await account.save();
     },
 
+    getByUsername: async (username) => await Account.findOne({ "username": username }),
+
     login: async (username, password) => {
-        let account = this.getByUsername(username);
+        let account = await Account.findOne({ "username": username });
         return await bcrypt.compare(password, account.hashedPassword);
     },
 
@@ -27,12 +29,22 @@ module.exports = {
         return account;
     },
 
-    getByUsername: async (username) => await Account.findOne({ "username": username }),
-
     getNotebooks: async (id) => {
         let account = await Account.findById(id);
         let populated = await account.populate("notebooks").execPopulate();
         return populated.notebooks;
+    },
+
+    addNotebook: async (id, notebookId) => {
+        let account = await Account.findById(id);
+        account.notebooks.push(notebookId);
+        await account.save();
+    },
+
+    removeNotebook: async (id, notebookId) => {
+        let account = await Account.findById(id);
+        account.notebooks.push(notebookId);
+        await account.save();
     },
 
     isUniqueUsername: async (username) => (await Account.countDocuments({ "username": username })) == 0

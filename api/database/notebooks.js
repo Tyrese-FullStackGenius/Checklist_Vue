@@ -8,7 +8,7 @@ module.exports = {
         return await Notebook.exists({ _id: id });
     },
 
-    createNotebook: async (notebookName, accountId) => {
+    create: async (notebookName, accountId) => {
         let notebook = new Notebook({
             _id: new mongoose.Types.ObjectId(),
             name: notebookName,
@@ -26,7 +26,7 @@ module.exports = {
     },
 
     deleteById: async (id) => {
-        let notes = await this.getById(id).notes;
+        let notes = await Notebook.findById(id).notes;
         for (var noteId in notes) {
             await Notes.setNotebook(noteId, undefined);
         }
@@ -34,14 +34,14 @@ module.exports = {
     },
 
     addNote: async (notebookId, noteId) => {
-        let notebook = await this.getById(notebookId);
+        let notebook = await Notebook.findById(notebookId);
         notebook.notes.push(noteId);
         await notebook.save();
         await Notes.setNotebook(noteId, notebookId);
     },
 
     removeNote: async (notebookId, noteId) => {
-        let notebook = await this.getById(notebookId);
+        let notebook = await Notebook.findById(notebookId);
         notebook.notes.pull(noteId);
         await notebook.save();
         await Notes.setNotebook(noteId, undefined);

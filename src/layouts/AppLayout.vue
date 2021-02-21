@@ -15,7 +15,7 @@
       <q-tabs align="left">
         <q-route-tab to="/page1" label="Page One" />
         <q-route-tab to="/page2" label="Page Two" />
-        <q-route-tab to="/page3" label="Page Three" />
+        <q-route-tab v-if="!isLoggedIn()" to="/account" label="Sign in" />
       </q-tabs>
       <div v-if="isLoggedIn()">
       <q-btn-dropdown stretch flat label="Dropdown">
