@@ -4,14 +4,15 @@
 
 require('dotenv').config();
 const mongoose = require('mongoose');
+const noteRoutes = require("./routes/noteRoutes");
+const notebookRoutes = require("./routes/notebookRoutes");
+const accountRoutes = require("./routes/accountRoutes");
 const express = require('express');
 const bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
 const app = express();
 const PORT = process.env.PORT || 4000;
-const noteRoutes = require("./routes/noteRoutes");
-const accountRoutes = require("./routes/accountRoutes");
-const notebookRoutes = require("./routes/notebookRoutes");
+
 const uri = process.env.DB_URI;
 const jwt = require('jsonwebtoken');
 const jwt_key = process.env.JWT_KEY;
@@ -87,11 +88,19 @@ function verifyToken(req, res, next) {
 
 function shouldAuth(req) {
   const excluded = [
-    "/accounts/checkUniqueUsername",
-    "/accounts/createAccount",
-    "/accounts/login"
+    { path: "/accounts/checkUniqueUsername", method: "POST" },
+    { path: "/accounts", method: "POST" }, // create account
+    { path: "/accounts/login", method: "POST" }
   ];
-  return !excluded.includes(req.path);
+  let path = req.path;
+  path = path.slice(-1) == "/" ? path.slice(0, -1) : path;
+  let method = req.method;
+
+  for (var index = 0; index < excluded.length; index++) {
+    let request = excluded[index];
+    if (request.path == path && request.method == method) return false;
+  }
+  return true;
 }
 
 module.exports = app;

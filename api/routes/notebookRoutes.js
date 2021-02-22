@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const Notebook = require("../models/notebook");
 const Notebooks = require("../database/notebooks");
 const Notes = require("../database/notes");
 

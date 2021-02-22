@@ -6,7 +6,7 @@ const accountSchema = Schema({
     username: String,
     name: String,
     hashedPassword: String,
-    notebooks: [{ type: Schema.Types.ObjectId, ref: 'notebook', default: [] }],
+    notebooks: [{ type: Schema.Types.ObjectId, ref: 'Notebook', default: [] }],
 });
 
 module.exports = mongoose.model('Account', accountSchema);

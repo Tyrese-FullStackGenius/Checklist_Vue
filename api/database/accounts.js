@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Account = require("../models/account");
 const bcrypt = require('bcrypt');
+const notebook = require("../models/notebook");
 const saltRounds = 12;
 
 module.exports = {
@@ -30,8 +31,9 @@ module.exports = {
     },
 
     getNotebooks: async (id) => {
+
         let account = await Account.findById(id);
-        let populated = await account.populate("notebooks").execPopulate();
+        let populated = await account.populate({ path: "notebooks" }).execPopulate();
         return populated.notebooks;
     },
 
