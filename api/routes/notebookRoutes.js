@@ -4,7 +4,7 @@ const Notebooks = require("../database/notebooks");
 const Notes = require("../database/notes");
 
 
-router.use("/:id*", authNotebookId);
+//router.use("/:id*", authNotebookId);
 
 // get notebook by id (optional population)
 router.get("/:id", async (req, res, next) => {

@@ -1,10 +1,14 @@
 const mongoose = require("mongoose");
 const Account = require("../models/account");
 const bcrypt = require('bcrypt');
-const notebook = require("../models/notebook");
 const saltRounds = 12;
 
 module.exports = {
+    exists: async (id) => {
+        if (!mongoose.Types.ObjectId.isValid(id)) return false;
+        return await Account.exists({ _id: id });
+    },
+
     create: async (accountData) => {
         let hash = await bcrypt.hash(accountData.password, saltRounds);
         let account = new Account({
@@ -31,7 +35,6 @@ module.exports = {
     },
 
     getNotebooks: async (id) => {
-
         let account = await Account.findById(id);
         let populated = await account.populate({ path: "notebooks" }).execPopulate();
         return populated.notebooks;

@@ -17,6 +17,10 @@ const uri = process.env.DB_URI;
 const jwt = require('jsonwebtoken');
 const jwt_key = process.env.JWT_KEY;
 
+const Accounts = require('./database/accounts');
+const Notebooks = require('./database/notebooks');
+const Notes = require('./database/notes');
+
 mongoose.connect(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -45,9 +49,15 @@ app.use((req, res, next) => {
 
 app.use(verifyToken);
 
+app.use("/accounts/:accountId", validateAccountId);
 app.use("/accounts", accountRoutes);
-app.use("/notes", noteRoutes);
-app.use("/notebooks", notebookRoutes);
+
+app.use("/accounts/:accountId/notebooks/:notebookId", validateNotebookId);
+app.use("/accounts/:accountId/notebooks", notebookRoutes);
+
+app.use("/accounts/:accountId/notebooks/:notebookId/notes/:noteId", validateNoteId);
+app.use("/accounts/:accountId/notebooks/:notebookId/notes", noteRoutes);
+
 
 app.use((req, res, next) => {
   const error = new Error("Not found");
@@ -64,6 +74,31 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, console.log('Server is running on port:', PORT));
+
+async function validateAccountId(req, res, next) {
+  const accountId = req.params.accountId;
+  if (!(await Accounts.exists(accountId))) return res.sendStatus(404);
+  if (accountId != req.authData.account._id) return res.sendStatus(403);
+  console.log("Validated account id: " + accountId);
+  next();
+}
+
+async function validateNotebookId(req, res, next) {
+  const accountId = req.params.accountId;
+  const notebookId = req.params.notebookId;
+  if (accountId != await Notebooks.getById(notebookId).owner) return res.sendStatus(403);
+  console.log("Validated notebook id: " + notebookId);
+  next();
+}
+
+async function validateNoteId(req, res, next) {
+  const accountId = req.params.accountId;
+  const noteId = req.params.notebookId;
+  if (accountId != await Notes.getById(noteId).owner) return res.sendStatus(403);
+  console.log("Validated note id: " + noteId);
+  next();
+}
+
 
 function verifyToken(req, res, next) {
   const bearerHeader = req.headers.authorization; //get auth header value
