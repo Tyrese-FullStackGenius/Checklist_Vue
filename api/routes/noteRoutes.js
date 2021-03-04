@@ -41,6 +41,8 @@ router.post("/", async (req, res, next) => {
     }
 });
 
+router.use("/:noteId", validateNoteId);
+
 // edit note
 router.post("/:id/edit", getNote, async (req, res, next) => {
     try {
@@ -87,6 +89,14 @@ router.get("/:id", getNote, async (req, res, next) => {
         next(err);
     }
 });
+
+async function validateNoteId(req, res, next) {
+    const accountId = req.params.accountId;
+    const noteId = req.params.notebookId;
+    if (accountId != await Notes.getById(noteId).owner) return res.sendStatus(403);
+    console.log("Validated note id: " + noteId);
+    next();
+  }
 
 async function getNote(req, res, next) {
     try {

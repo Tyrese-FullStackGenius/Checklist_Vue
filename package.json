@@ -10,7 +10,7 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@adapttive/vue-markdown": "^3.0.3",
+    "@adapttive/vue-markdown": "^4.0.0",
     "@quasar/extras": "^1.9.17",
     "axios": "^0.21.1",
     "core-js": "^3.9.0",
