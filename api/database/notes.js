@@ -14,6 +14,33 @@ module.exports = {
         return await Note.exists({ _id: id });
     },
 
+    create: async(noteData) => {
+        const noteContent = new NoteContent({
+            _id: new mongoose.Types.ObjectId(),
+            content: noteData.content,
+            owner: noteData.accountId
+        });
+
+        const note = new Note({
+            _id: new mongoose.Types.ObjectId(),
+            title: noteData.title,
+            content: noteContent,
+            owner: noteData.accountId,
+            notebook: noteData.notebookId,
+            created: Date.now(),
+            tags: noteData.tags,
+            starred: noteData.starred,
+            edited: Date.now()
+        });
+
+        noteContent.note = note;
+
+        await noteContent.save();
+        const createdNote = await note.save();
+
+        return createdNote;
+    },
+
     getById: async (id, populate) => {
         let note = await Note.findById(id);
         if (!populate)

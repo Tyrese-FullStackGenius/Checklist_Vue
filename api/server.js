@@ -19,14 +19,15 @@ const jwt_key = process.env.JWT_KEY;
 
 const Accounts = require('./database/accounts');
 
-mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-    .then(
-        () => { console.log('Database is connected'); },
-        err => { console.log('Can not connect to the database: ' + err); }
-    );
+mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(console.log("Database is connected"))
+    .catch(error => console.log("Cannot connect to database: " + error));
+
+app.use((req, res, next) => {
+    console.time("main");
+    next();
+    console.timeEnd("main");
+});
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -76,6 +77,7 @@ function verifyToken(req, res, next) {
         jwt.verify(bearerToken, jwt_key, (err, authData) => {
             if (!err) {
                 req.authData = authData;
+                req.accountId = authData.account._id;
                 next();
             } else {
                 res.sendStatus(403);
@@ -92,7 +94,6 @@ async function checkUniqueUsername(req, res) {
 
 function shouldAuth(req) {
     const excluded = [
-        { path: "/accounts/checkUniqueUsername", method: "POST" },
         { path: "/accounts", method: "POST" }, // create account
         { path: "/accounts/login", method: "POST" }
     ];

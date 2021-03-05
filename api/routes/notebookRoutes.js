@@ -1,14 +1,26 @@
 const express = require("express");
 const router = express.Router();
 const noteRoutes = require("./noteRoutes");
+const Accounts = require("../database/accounts");
 const Notebooks = require("../database/notebooks");
 const Notes = require("../database/notes");
 
-// create notebook
+// create notebook and add to account
 router.post("/", async (req, res, next) => {
     try {
-        let notebook = await Notebooks.create(req.body.name, req.authData.account._id);
-        res.status(201).json({ message: "Notebook created", notebook });
+        let notebook = await Notebooks.create(req.body.name, req.accountId);
+        await Accounts.addNotebook(req.accountId, notebook._id);
+        res.status(201).json({ message: "Notebook created and added to account", notebook });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// get all notebooks
+router.get("/", async (req, res, next) => {
+    try {
+        let notebooks = await Accounts.getNotebooks(req.accountId);
+        res.status(200).json({ notebooks });
     } catch (err) {
         next(err);
     }
@@ -20,23 +32,28 @@ router.use("/:notebookId", validateNotebookId);
 // get notebooks by name
 // requires indexing
 
-router.get("/:id/", async (req, res, next) => {
-    let notebook = await Notebooks.getById(req.params.id);
-    res.status(200).json({ notebook });
+router.get("/:id", async (req, res, next) => {
+    try {
+        let notebook = await Notebooks.getById(req.params.id, req.body.populate);
+        res.status(200).json({ notebook });
+    } catch (err) {
+        next(err);
+    }
 });
 
 // delete notebook by id
-router.post("/:id/delete", async (req, res, next) => {
+router.delete("/:id", async (req, res, next) => {
     try {
+        await Accounts.removeNotebook(req.accountId, req.params.id);
         await Notebooks.deleteById(req.params.id);
-        res.status(200).json({ message: "Notebook deleted" });
+        res.status(200).json({ message: "Notebook deleted and removed from account" });
     } catch (err) {
         next(err);
     }
 });
 
 // add note to notebook
-router.post("/:id/addNote", async (req, res, next) => {
+router.post("/:id/addNote", async (req, res, next) => { // move to note routes
     try {
         let noteId = req.body.noteId;
         if (!await Notes.exists(noteId)) return res.sendStatus(400);
@@ -49,7 +66,7 @@ router.post("/:id/addNote", async (req, res, next) => {
 });
 
 // remove note from notebook
-router.post("/:id/removeNote", async (req, res, next) => {
+router.post("/:id/removeNote", async (req, res, next) => { // move to note routes
     try {
         let noteId = req.body.noteId;
         if (!await Notes.exists(noteId)) return res.sendStatus(400);
@@ -84,28 +101,13 @@ router.use("/:notebookId/notes", noteRoutes);
 
 async function validateNotebookId(req, res, next) {
     console.log("Validating notebook id...");
-    const accountId = req.params.accountId;
+    const accountId = req.accountId;
     const notebookId = req.params.notebookId;
-    if (accountId != await Notebooks.getById(notebookId).owner) return res.sendStatus(403);
+    if (!(await Notebooks.exists(notebookId))) return res.sendStatus(404);
+    if (accountId != (await Notebooks.getById(notebookId)).owner) return res.sendStatus(403);
+    req.notebookId = notebookId;
     console.log("Validated notebook id: " + notebookId);
     next();
-}
-
-async function authNotebookId(req, res, next) {
-    try {
-        console.log("Testing auth...");
-        let id = req.params.id;
-        if (!(await Notebooks.exists(id))) return res.sendStatus(404);
-
-        let notebook = await Notebooks.getById(id);
-        console.log(notebook);
-        console.log(req.authData.account._id);
-        console.log(notebook.owner);
-        if (req.authData.account._id != notebook.owner) return res.sendStatus(403);
-        next();
-    } catch (err) {
-        next(err);
-    }
 }
 
 module.exports = router;

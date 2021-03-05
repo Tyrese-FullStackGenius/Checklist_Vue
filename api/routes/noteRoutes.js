@@ -3,37 +3,19 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const Note = require("../models/note");
 const NoteContent = require("../models/noteContent");
+const Notes = require("../database/notes");
 const Account = require("../models/account");
+const note = require("../models/note");
 
-// create note (does not support adding to notebook)
+// create note and add it to notebook
 router.post("/", async (req, res, next) => {
     try {
-        const accountId = req.authData._id;
-
-        const noteContent = new NoteContent({
-            _id: new mongoose.Types.ObjectId(),
-            content: req.body.content,
-            owner: accountId
-        });
-
-        const note = new Note({
-            _id: new mongoose.Types.ObjectId(),
-            title: req.body.title,
-            content: noteContent,
-            owner: accountId,
-            created: Date.now(),
-            tags: req.body.tags,
-            starred: req.body.starred,
-            edited: Date.now()
-        });
-
-        noteContent.note = note;
-
-        await noteContent.save();
-        const createdNote = await note.save();
+        let noteData = req.body;
+        noteData.accountId = req.accountId;
+        noteData.notebookId = req.notebookId;
 
         res.status(201).json({
-            message: "Note created",
+            message: "Note created and added to notebook",
             createdNote
         });
     } catch (err) {
@@ -43,71 +25,45 @@ router.post("/", async (req, res, next) => {
 
 router.use("/:noteId", validateNoteId);
 
-// edit note
-router.post("/:id/edit", getNote, async (req, res, next) => {
+// get note by id
+router.get("/:id", async (req, res, next) => {
     try {
-        let note = req.body.note;
+        let note = await Notes.getById(req.params.id);
+        res.status(200).json({ note });
+    } catch (err) {
+        next(err);
+    }
+});
 
-        let noteContent = await NoteContent.findById(note.content).exec();
-        noteContent.content = req.body.content;
-        await noteContent.save();
-
-        note.title = req.body.title;
-        note.tags = req.body.tags;
-        note.starred = req.body.starred;
-        note.edited = Date.now();
-
-        let savedNote = await note.save();
-        res.status(200).json({ savedNote });
+// edit note
+router.post("/:id", async (req, res, next) => {
+    try {
+        let newNote = req.body;
+        let note = await Notes.updateById(req.params.id, newNote);
+        res.status(200).json({ message: "Note updated", note });
     } catch (err) {
         next(err);
     }
 });
 
 // delete note
-router.post("/:id/delete", getNote, async (req, res, next) => {
+router.delete("/:id", async (req, res, next) => {
     try {
-        await NoteContent.findByIdAndDelete(req.body.note.content);
-        Note.findByIdAndDelete(req.params.id).then(() => {
-            res.status(200).json({ message: "Note deleted" });
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-
-// get note by id
-router.get("/:id", getNote, async (req, res, next) => {
-    try {
-        let note = req.body.note;
-        if (req.body.populate) {
-            let populatedNote = await note.populate("content").execPopulate();
-            note.content = populatedNote.content.content;
-        }
-        res.status(200).send(note);
+        await Notes.deleteById(req.params.id);
+        res.status(200).json({ message: "Note deleted and removed from notebook" });
     } catch (err) {
         next(err);
     }
 });
 
 async function validateNoteId(req, res, next) {
-    const accountId = req.params.accountId;
-    const noteId = req.params.notebookId;
-    if (accountId != await Notes.getById(noteId).owner) return res.sendStatus(403);
+    const accountId = req.accountId;
+    const noteId = req.params.noteId;
+    if (!await Notes.exists(noteId)) return res.sendStatus(404);
+    if (accountId != (await Notes.getById(noteId)).owner) return res.sendStatus(403);
+    req.noteId = noteId;
     console.log("Validated note id: " + noteId);
     next();
-  }
-
-async function getNote(req, res, next) {
-    try {
-        if (!(await Note.exists({ _id: req.params.id }))) return res.sendStatus(404);
-
-        let note = await Note.findById(req.params.id).exec();
-        if (req.authData._id !== note.owner) return res.sendStatus(403);
-        req.body.note = note;
-    } catch (err) {
-        next(err);
-    }
 }
 
 module.exports = router;

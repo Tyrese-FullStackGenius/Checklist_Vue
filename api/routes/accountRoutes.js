@@ -36,39 +36,19 @@ router.post("/login", async (req, res) => {
     const result = await Accounts.login(req.body.username, req.body.password);
     if (result) {
         const account = await Accounts.getByUsername(req.body.username);
-        jwt.sign({ account }, jwt_key, (err, token) => res.json({ token }));
+        jwt.sign({ account }, jwt_key, (err, token) => res.json({ token: token, id: account._id }));
     } else {
         res.sendStatus(403);
     }
 });
 
 // validate account id for routes beyond this point
-router.use("/:accountId", validateAccountId); 
+router.use("/:accountId", validateAccountId);
 
-router.post("/:id/addNotebook", async (req, res) => {
-    let accountId = req.authData.account._id;
-    let notebookId = req.body.notebookId;
-
-    if (!(await Notebooks.exists(notebookId))) return res.sendStatus(404);
-    let notebook = await Notebooks.getById(notebookId);
-    if (notebook.owner != accountId) return res.sendStatus(403);
-    await Accounts.addNotebook(accountId, notebookId);
-    res.status(200).json({ message: "Notebook added" });
-});
-
-router.post("/:id/removeNotebook", async (req, res) => {
-    let accountId = req.authData.account._id;
-    let notebookId = req.body.notebookId;
-
-    if (!(await Notebooks.exists(notebookId))) return res.sendStatus(404);
-    let notebook = await Notebooks.getById(notebookId);
-    if (notebook.owner != accountId) return res.sendStatus(403);
-    await Accounts.removeNotebook(accountId, notebookId);
-    res.status(200).json({ message: "Notebook removed" });
-});
-
-router.get("/:id/", async (req, res) => {
-    res.status(200).json({ account: await Accounts.getById(req.authData.account._id) });
+router.get("/:id", async (req, res) => {
+    let account = await Accounts.getById(req.params.id);
+    account.hashedPassword = undefined;
+    res.status(200).json({ account });
 });
 
 // notebook middleware
@@ -78,10 +58,10 @@ async function validateAccountId(req, res, next) {
     console.log("Checking account id...");
     const accountId = req.params.accountId;
     if (!(await Accounts.exists(accountId))) return res.sendStatus(404);
-    if (accountId != req.authData.account._id) return res.sendStatus(403);
+    if (accountId != req.accountId) return res.sendStatus(403);
     console.log("Validated account id: " + accountId);
     next();
-  }
+}
 
 async function checkValidation(req, res, next) {
     const errorsResult = validationResult(req);
