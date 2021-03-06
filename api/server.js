@@ -4,7 +4,6 @@
 
 require('dotenv').config();
 const mongoose = require('mongoose');
-const noteRoutes = require("./routes/noteRoutes");
 const accountRoutes = require("./routes/accountRoutes");
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -23,11 +22,11 @@ mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(console.log("Database is connected"))
     .catch(error => console.log("Cannot connect to database: " + error));
 
-app.use((req, res, next) => {
-    console.time("main");
-    next();
-    console.timeEnd("main");
-});
+// app.use((req, res, next) => {
+//     console.time("main");
+//     next();
+//     console.timeEnd("main");
+// });
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -47,7 +46,6 @@ app.use((req, res, next) => {
 
 app.post("/checkUniqueUsername", checkUniqueUsername);
 
-app.use(verifyToken);
 app.use("/accounts", accountRoutes);
 
 app.use((req, res, next) => {
@@ -66,46 +64,8 @@ app.use((error, req, res, next) => {
 
 app.listen(PORT, console.log('Server is running on port:', PORT));
 
-function verifyToken(req, res, next) {
-    const bearerHeader = req.headers.authorization; //get auth header value
-
-    if (!shouldAuth(req)) {
-        console.log(req.path + " was excluded from token check.");
-        next();
-    } else if (typeof bearerHeader !== 'undefined') {
-        const bearerToken = bearerHeader.split(' ')[1]; // "Bearer [token]"
-        jwt.verify(bearerToken, jwt_key, (err, authData) => {
-            if (!err) {
-                req.authData = authData;
-                req.accountId = authData.account._id;
-                next();
-            } else {
-                res.sendStatus(403);
-            }
-        });
-    } else {
-        res.sendStatus(403);
-    }
-}
-
 async function checkUniqueUsername(req, res) {
     res.status(200).json({ result: await Accounts.isUniqueUsername(req.body.username) });
-}
-
-function shouldAuth(req) {
-    const excluded = [
-        { path: "/accounts", method: "POST" }, // create account
-        { path: "/accounts/login", method: "POST" }
-    ];
-    let path = req.path;
-    path = path.slice(-1) == "/" ? path.slice(0, -1) : path;
-    let method = req.method;
-
-    for (var index = 0; index < excluded.length; index++) {
-        let request = excluded[index];
-        if (request.path == path && request.method == method) return false;
-    }
-    return true;
 }
 
 module.exports = app;

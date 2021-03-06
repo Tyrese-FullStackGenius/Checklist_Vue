@@ -1,11 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const mongoose = require("mongoose");
-const Note = require("../models/note");
-const NoteContent = require("../models/noteContent");
+const Notebooks = require("../database/notebooks");
 const Notes = require("../database/notes");
-const Account = require("../models/account");
-const note = require("../models/note");
 
 // create note and add it to notebook
 router.post("/", async (req, res, next) => {
@@ -14,9 +10,11 @@ router.post("/", async (req, res, next) => {
         noteData.accountId = req.accountId;
         noteData.notebookId = req.notebookId;
 
+        let note = await Notes.create(noteData);
+        await Notebooks.addNote(req.notebookId, note._id);
+
         res.status(201).json({
-            message: "Note created and added to notebook",
-            createdNote
+            message: "Note created and added to notebook", note
         });
     } catch (err) {
         next(err);
@@ -36,7 +34,7 @@ router.get("/:id", async (req, res, next) => {
 });
 
 // edit note
-router.post("/:id", async (req, res, next) => {
+router.put("/:id", async (req, res, next) => {
     try {
         let newNote = req.body;
         let note = await Notes.updateById(req.params.id, newNote);
@@ -56,13 +54,28 @@ router.delete("/:id", async (req, res, next) => {
     }
 });
 
+router.post("/:id/move", async (req, res, next) => {
+    try {
+        let noteId = req.params.id;
+        let newNotebookId = req.body.newNotebookId;
+        let oldNotebookId = req.params.notebookId;
+        if (!(await Notebooks.exists(newNotebookId)))
+            return res.sendStatus(400);
+
+        await Notebooks.moveNote(oldNotebookId, newNotebookId, noteId);
+
+        res.status(200).json({ message: "Note moved" });
+    } catch (err) {
+        next(err);
+    }
+});
+
 async function validateNoteId(req, res, next) {
     const accountId = req.accountId;
     const noteId = req.params.noteId;
-    if (!await Notes.exists(noteId)) return res.sendStatus(404);
+    if (!await Notes.exists(noteId)) return res.status(404).json({ message: "Note does not exist" });
     if (accountId != (await Notes.getById(noteId)).owner) return res.sendStatus(403);
     req.noteId = noteId;
-    console.log("Validated note id: " + noteId);
     next();
 }
 
